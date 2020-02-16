@@ -1,0 +1,16 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/abhishek47kashyap/Desktop/CLion files/Cherno_OpenGL/main.cpp
+iostream
+-
+GL/glew.h
+-
+GLFW/glfw3.h
+-
+
