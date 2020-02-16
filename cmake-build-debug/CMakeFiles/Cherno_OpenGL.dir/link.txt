@@ -1,1 +1,0 @@
-/usr/bin/c++  -g   CMakeFiles/Cherno_OpenGL.dir/main.cpp.o  -o Cherno_OpenGL -lglfw /usr/lib/x86_64-linux-gnu/libGL.so -lglfw -lGLEW 

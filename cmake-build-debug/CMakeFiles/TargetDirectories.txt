@@ -1,3 +1,0 @@
-/home/abhishek47kashyap/Desktop/CLion files/Cherno_OpenGL/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/abhishek47kashyap/Desktop/CLion files/Cherno_OpenGL/cmake-build-debug/CMakeFiles/Cherno_OpenGL.dir
-/home/abhishek47kashyap/Desktop/CLion files/Cherno_OpenGL/cmake-build-debug/CMakeFiles/edit_cache.dir
