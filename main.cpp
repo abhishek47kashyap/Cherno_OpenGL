@@ -68,6 +68,7 @@ int main() {
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
 
+    glewExperimental = GL_TRUE;   // without this, glGenVertexArrays() causes memory issues
     if (glewInit() != GLEW_OK)
         std::cout << "Error linking glewInit()!" << std::endl;
     else
@@ -75,8 +76,15 @@ int main() {
 
     std::cout << "GL version: " << glGetString(GL_VERSION) << std::endl;
 
+    if (glGenVertexArrays == nullptr)
+    {
+        std::cout << "Bad luck, glGenVertexArrays() returned NULL" << std::endl;
+        std::cout << "\tSetting glewExperimental = GL_TRUE before glewInit() might help" << std::endl;
+    }
+
+
     GLuint vertexArrayID;
-    glGenVertexArrays(1, &vertexArrayID);   // TODO: this causes memory issues
+    glGenVertexArrays(1, &vertexArrayID);
     glBindVertexArray(vertexArrayID);
 
     // creating buffer for triangles vertices
@@ -118,11 +126,6 @@ int main() {
 
         // Triangle
         glDrawArrays(GL_TRIANGLES, 0, 3);
-//        glBegin(GL_TRIANGLES);
-//        glVertex2f(-0.5f, -0.5f);
-//        glVertex2f(0.0f, 0.5f);
-//        glVertex2f(0.5f, 0.0f);
-//        glEnd();
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -130,6 +133,8 @@ int main() {
         /* Poll for and process events */
         glfwPollEvents();
     }
+
+    glDeleteProgram(shader);
 
     glfwTerminate();
     return 0;
