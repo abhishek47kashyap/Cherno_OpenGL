@@ -7,6 +7,22 @@
 #include <GLFW/glfw3.h>
 
 
+static void GLClearError()
+{
+    // keep flushing out pending errors (if there are any) so as to start with a clean slate
+    while (glGetError() != GL_NO_ERROR);
+}
+
+static bool GLLogCall()
+{
+    while (GLenum error = glGetError())
+    {
+        std::cout << "[OpenGL error] (" << error << ")" << std::endl;
+        return false;
+    }
+    return true;
+}
+
 struct ShaderProgramSource
 {
     std::string VertexSource;
@@ -112,6 +128,8 @@ int main() {
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
 
+    glfwSwapInterval(1); // modifying refresh rate
+
     glewExperimental = GL_TRUE;   // without this, glGenVertexArrays() causes memory issues
 
     if (glewInit() != GLEW_OK)
@@ -143,7 +161,7 @@ int main() {
     unsigned int buffer;
     glGenBuffers(1, &buffer);
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), vertexCoordinates, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), vertexCoordinates, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float)*2, nullptr);
@@ -160,14 +178,27 @@ int main() {
     unsigned int shader = CreateShader(shaderSource.VertexSource, shaderSource.FragmentSource);
     glUseProgram(shader);
 
+    int location = glGetUniformLocation(shader, "u_Color");
+    if (location == -1)
+        std::cerr << "Uniform could not be found (or may be there's an unused uniform)" << std::endl;
+    glUniform4f(location, 0.2f, 0.3f, 0.0f, 1.0f);
+
+    // color animation
+    float blueChannel = 0.0f, increment = 0.05;
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // glDrawArrays(GL_TRIANGLES, 0, 6);  // Triangle: make sure vertexCoordinates has 3 not 4 vertices
+        glUniform4f(location, 0.2f, 0.3f, blueChannel, 1.0f);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);   // Square
+
+        // changing blue channel intensity
+        if (blueChannel > 1.0f || blueChannel < 0.0f)
+            increment = -increment;
+        blueChannel += increment;
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
