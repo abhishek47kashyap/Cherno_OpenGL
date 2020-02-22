@@ -1,7 +1,50 @@
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+
+struct ShaderProgramSource
+{
+    std::string VertexSource;
+    std::string FragmentSource;
+};
+
+static ShaderProgramSource ParseShader(const std::string& filepath)
+{
+    std::ifstream shaderFile(filepath);   // opens the file
+
+    if (!shaderFile)
+        std::cerr << "Shader file " << filepath << " could not be opened" << std::endl;
+    if (shaderFile.peek() == std::ifstream::traits_type::eof())
+        std::cerr << "Shader file is empty" << std::endl;
+
+    enum class ShaderType
+    {
+        NONE = -1, VERTEX = 0, FRAGMENT = 1
+    };
+
+    std::string line;
+    std::stringstream ss[2];
+    ShaderType shaderType = ShaderType::NONE;
+    while (getline(shaderFile, line))
+    {
+        if (line.find("#shader") != std::string::npos)   // if shader is found (npos is invalid string position)
+        {
+            if (line.find("vertex") != std::string::npos)
+                shaderType = ShaderType::VERTEX;
+            else if (line.find("fragment") != std::string::npos)
+                shaderType = ShaderType::FRAGMENT;
+        }
+        else
+            ss[(int)shaderType] << line << "\n";
+    }
+
+    return {ss[0].str(), ss[1].str()};
+}
 
 static unsigned int CompileShader(unsigned int type, const std::string& source)
 {
@@ -53,12 +96,13 @@ int main() {
     if (!glfwInit())
         return -1;
 
+    // these 3 lines are needed for the renders to show up on my system
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(640, 480, "OpenGL triangle", nullptr, nullptr);
+    window = glfwCreateWindow(640, 480, "OpenGL render", nullptr, nullptr);
     if (!window)
     {
         glfwTerminate();
@@ -69,6 +113,7 @@ int main() {
     glfwMakeContextCurrent(window);
 
     glewExperimental = GL_TRUE;   // without this, glGenVertexArrays() causes memory issues
+
     if (glewInit() != GLEW_OK)
         std::cout << "Error linking glewInit()!" << std::endl;
     else
@@ -77,10 +122,7 @@ int main() {
     std::cout << "GL version: " << glGetString(GL_VERSION) << std::endl;
 
     if (glGenVertexArrays == nullptr)
-    {
-        std::cout << "Bad luck, glGenVertexArrays() returned NULL" << std::endl;
-        std::cout << "\tSetting glewExperimental = GL_TRUE before glewInit() might help" << std::endl;
-    }
+        std::cerr << "Bad luck, glGenVertexArrays() returned NULL" << std::endl;
 
 
     GLuint vertexArrayID;
@@ -88,34 +130,34 @@ int main() {
     glBindVertexArray(vertexArrayID);
 
     // creating buffer for triangles vertices
-    float vertexCoordinates[6] = {-0.5f, -0.5f,
-                                  0.0f, 0.5f,
-                                  0.5f, 0.0f};
+    float vertexCoordinates[] = {-0.5f, -0.5f,    // corner 0
+                                  0.5f, -0.5f,    // corner 1
+                                  0.5f,  0.5f,    // corner 2
+                                 -0.5f,  0.5f     // corner 3
+                                };
+
+    unsigned int indices[] = {0, 1, 2,
+                              2, 3, 0};   // building a square out of vertexCoordinates
+
+    // for a triangle: GL_ARRAY_BUFFER
     unsigned int buffer;
     glGenBuffers(1, &buffer);
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), vertexCoordinates, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), vertexCoordinates, GL_STATIC_DRAW);
+
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float)*2, nullptr);
 
-    std::string vertexShader =
-            "#version 330 core\n"
-            "\n"
-            "layout(location=0) in vec4 position;\n"
-            "\n"
-            "void main(){\n"
-            "   gl_Position = position;\n"
-            "}\n";
-    std::string fragmentShader =
-            "#version 330 core\n"
-            "\n"
-            "layout(location=0) out vec4 color;\n"
-            "\n"
-            "void main(){\n"
-            "   color = vec4(1.0, 0.0, 0.0, 1.0);\n"
-            "}\n";
+    // for composing a square out of 2 triangles: GL_ELEMENT_ARRAY_BUFFER
+    unsigned int indexBufferObj;
+    glGenBuffers(1, &indexBufferObj);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferObj);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 
-    unsigned int shader = CreateShader(vertexShader, fragmentShader);
+    std::string shaderFilepath = "resources/shaders/Basic.shader";  // working directory must be where main.cpp is
+    ShaderProgramSource shaderSource = ParseShader(shaderFilepath);
+
+    unsigned int shader = CreateShader(shaderSource.VertexSource, shaderSource.FragmentSource);
     glUseProgram(shader);
 
     /* Loop until the user closes the window */
@@ -124,8 +166,8 @@ int main() {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // Triangle
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        // glDrawArrays(GL_TRIANGLES, 0, 6);  // Triangle: make sure vertexCoordinates has 3 not 4 vertices
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);   // Square
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
