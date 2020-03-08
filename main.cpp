@@ -157,14 +157,20 @@ int main() {
     unsigned int indices[] = {0, 1, 2,
                               2, 3, 0};   // building a square out of vertexCoordinates
 
+    // Vertex Array Object (VAO) == bind Vertex buffer and setting up layout
+    unsigned int vertexArrayObj;
+    glGenVertexArrays(1, &vertexArrayObj);
+    glBindVertexArray(vertexArrayObj);
+
     // for a triangle: GL_ARRAY_BUFFER
     unsigned int buffer;
     glGenBuffers(1, &buffer);
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), vertexCoordinates, GL_STATIC_DRAW);
 
+    // Specifying layout
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float)*2, nullptr);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float)*2, nullptr);  // links the buffer with the VAO
 
     // for composing a square out of 2 triangles: GL_ELEMENT_ARRAY_BUFFER
     unsigned int indexBufferObj;
@@ -186,13 +192,25 @@ int main() {
     // color animation
     float blueChannel = 0.0f, increment = 0.05;
 
+    // Unbinding
+    glBindVertexArray(0);
+    glUseProgram(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
+        // binding every iteration
+        glUseProgram(shader);
         glUniform4f(location, 0.2f, 0.3f, blueChannel, 1.0f);
+
+        glBindVertexArray(vertexArrayObj);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferObj);
+
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);   // Square
 
         // changing blue channel intensity
