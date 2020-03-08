@@ -6,22 +6,9 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-
-static void GLClearError()
-{
-    // keep flushing out pending errors (if there are any) so as to start with a clean slate
-    while (glGetError() != GL_NO_ERROR);
-}
-
-static bool GLLogCall()
-{
-    while (GLenum error = glGetError())
-    {
-        std::cout << "[OpenGL error] (" << error << ")" << std::endl;
-        return false;
-    }
-    return true;
-}
+#include "Renderer.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
 
 struct ShaderProgramSource
 {
@@ -163,20 +150,14 @@ int main() {
     glBindVertexArray(vertexArrayObj);
 
     // for a triangle: GL_ARRAY_BUFFER
-    unsigned int buffer;
-    glGenBuffers(1, &buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), vertexCoordinates, GL_STATIC_DRAW);
+    VertexBuffer vb(vertexCoordinates, 4 * 2 * sizeof(float));
 
     // Specifying layout
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float)*2, nullptr);  // links the buffer with the VAO
 
     // for composing a square out of 2 triangles: GL_ELEMENT_ARRAY_BUFFER
-    unsigned int indexBufferObj;
-    glGenBuffers(1, &indexBufferObj);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferObj);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+    IndexBuffer ib(indices, 6);
 
     std::string shaderFilepath = "resources/shaders/Basic.shader";  // working directory must be where main.cpp is
     ShaderProgramSource shaderSource = ParseShader(shaderFilepath);
@@ -209,7 +190,7 @@ int main() {
         glUniform4f(location, 0.2f, 0.3f, blueChannel, 1.0f);
 
         glBindVertexArray(vertexArrayObj);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferObj);
+        ib.Bind();
 
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);   // Square
 
