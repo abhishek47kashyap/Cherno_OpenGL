@@ -3,7 +3,7 @@ project(Cherno_OpenGL)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(Cherno_OpenGL main.cpp Renderer.cpp Renderer.h VertexBuffer.cpp VertexBuffer.h IndexBuffer.cpp IndexBuffer.h)
+add_executable(Cherno_OpenGL main.cpp Renderer.cpp Renderer.h VertexBuffer.cpp VertexBuffer.h IndexBuffer.cpp IndexBuffer.h VertexArray.cpp VertexArray.h VertexBufferLayout.h)
 
 # OpenGL
 find_package(glfw3 3.1.2 REQUIRED)

@@ -9,6 +9,7 @@
 #include "Renderer.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "VertexArray.h"
 
 struct ShaderProgramSource
 {
@@ -150,11 +151,12 @@ int main() {
     glBindVertexArray(vertexArrayObj);
 
     // for a triangle: GL_ARRAY_BUFFER
+    VertexArray va;
     VertexBuffer vb(vertexCoordinates, 4 * 2 * sizeof(float));
 
-    // Specifying layout
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float)*2, nullptr);  // links the buffer with the VAO
+    VertexBufferLayout layout;
+    layout.Push<float>(2);
+    va.AddBuffer(vb, layout);
 
     // for composing a square out of 2 triangles: GL_ELEMENT_ARRAY_BUFFER
     IndexBuffer ib(indices, 6);
@@ -189,7 +191,7 @@ int main() {
         glUseProgram(shader);
         glUniform4f(location, 0.2f, 0.3f, blueChannel, 1.0f);
 
-        glBindVertexArray(vertexArrayObj);
+        va.Bind();
         ib.Bind();
 
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);   // Square
