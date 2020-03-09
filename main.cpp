@@ -145,12 +145,6 @@ int main() {
     unsigned int indices[] = {0, 1, 2,
                               2, 3, 0};   // building a square out of vertexCoordinates
 
-    // Vertex Array Object (VAO) == bind Vertex buffer and setting up layout
-    unsigned int vertexArrayObj;
-    glGenVertexArrays(1, &vertexArrayObj);
-    glBindVertexArray(vertexArrayObj);
-
-    // for a triangle: GL_ARRAY_BUFFER
     VertexArray va;
     VertexBuffer vb(vertexCoordinates, 4 * 2 * sizeof(float));
 
@@ -176,7 +170,7 @@ int main() {
     float blueChannel = 0.0f, increment = 0.05;
 
     // Unbinding
-    glBindVertexArray(0);
+    va.Unbind();
     glUseProgram(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
