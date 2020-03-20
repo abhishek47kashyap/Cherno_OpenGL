@@ -9,7 +9,9 @@ add_executable(Cherno_OpenGL main.cpp
                IndexBuffer.cpp IndexBuffer.h
                VertexArray.cpp VertexArray.h
                VertexBufferLayout.h
-               Shader.cpp Shader.h)
+               Shader.cpp Shader.h
+               vendor/stb_image/stb_image.cpp vendor/stb_image/stb_image.h
+               Texture.cpp Texture.h)
 
 # OpenGL
 find_package(glfw3 3.1.2 REQUIRED)
